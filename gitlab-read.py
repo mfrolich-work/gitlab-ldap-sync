@@ -9,11 +9,12 @@ import ldap.asyncsearch
 import logging
 
 if __name__ == "__main__":
-    
     print('Initializing gitlab-ldap-sync.')
+    
     config = None
     with open('config.json') as f:
         config = json.load(f)
+    
     if config is not None:
         print('Done.')
         print('Updating logger configuration')
