@@ -7,26 +7,47 @@ import json
 import ldap
 import ldap.asyncsearch
 import logging
+import urllib3
+
 
 if __name__ == "__main__":
+
     print('Initializing gitlab-ldap-sync.')
+    
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     config = None
+    
     with open('config.json') as f:
         config = json.load(f)
     if config is not None:
         print('Done.')
         print('Updating logger configuration')
+
         if not config['gitlab']['group_visibility']:
             config['gitlab']['group_visibility'] = 'private'
-        log_option = {
-            'format': '[%(asctime)s] [%(levelname)s] %(message)s'
-        }
-        if config['log']:
-            log_option['filename'] = config['log']
-        if config['log_level']:
-            log_option['level'] = getattr(logging, str(config['log_level']).upper())
-        logging.basicConfig(**log_option)
+
+        log_level = getattr(
+            logging,
+            str(config.get('log_level', 'INFO')).upper(),
+            logging.INFO
+        )
+
+        handlers = []
+
+        if config.get('log'):
+            handlers.append(logging.FileHandler(config['log']))
+
+        handlers.append(logging.StreamHandler(sys.stdout))
+
+        logging.basicConfig(
+            level=log_level,
+            format='[%(asctime)s] [%(levelname)s] %(message)s',
+            handlers=handlers,
+            force=True
+        )
+
         print('Done.')
+
         logging.info('Connecting to GitLab')
         if config['gitlab']['api']:
             gl = None
@@ -69,10 +90,15 @@ if __name__ == "__main__":
                 gitlab_group = {"name": group.full_name, "members": []}
                 for member in group.members.list(all=True):
                     user = gl.users.get(member.id)
+                    extern_uid = None
+                    if getattr(user, 'identities', None):
+                        if len(user.identities) > 0:
+                            extern_uid = user.identities[0].get('extern_uid')
+
                     gitlab_group['members'].append({
                         'username': user.username,
                         'name': user.name,
-                        'identities': user.identities[0]['extern_uid'],
+                        'identities': extern_uid,
                         'email': user.email
                     })
                 gitlab_groups.append(gitlab_group)
@@ -100,6 +126,7 @@ if __name__ == "__main__":
                                                    scope=ldap.SCOPE_SUBTREE,
                                                    filterstr=filterstr,
                                                    attrlist=attrlist):
+                logging.info(f"{group_data}")
                 ldap_groups_names.append(group_data['name'][0].decode())
                 ldap_group = {"name": group_data['name'][0].decode(), "members": []}
                 if config['gitlab']['add_description'] and 'description' in group_data:
@@ -127,7 +154,7 @@ if __name__ == "__main__":
 
             logging.info('Groups currently in GitLab : %s' % str.join(', ', gitlab_groups_names))
             logging.info('Groups currently in LDAP : %s' % str.join(', ', ldap_groups_names))
-
+            
             logging.info('Syncing Groups from LDAP.')
 
             for l_group in ldap_groups:
@@ -148,6 +175,8 @@ if __name__ == "__main__":
                         continue
                 else:
                     logging.info('|- Group already exist in GitLab, skiping creation.')
+
+                continue
 
                 logging.info('|- Working on group\'s members.')
                 for l_member in l_group['members']:
@@ -192,6 +221,7 @@ if __name__ == "__main__":
                 logging.info('Done.')
 
             logging.info('Done.')
+            sys.exit()
 
             logging.info('Cleaning membership of LDAP Groups')
 
