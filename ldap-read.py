@@ -64,8 +64,8 @@ class LdapService:
         try:
             self.l = ldap.initialize(uri=config['ldap']['url'])
             self.l.simple_bind_s(config['ldap']['bind_dn'], config['ldap']['password'])
-        except:
-            logging.error('Error while connecting')
+        except Exception as e:
+            logging.error("Error while connecting: %s", e)
             sys.exit(1)
 
         logging.info('Done.')
