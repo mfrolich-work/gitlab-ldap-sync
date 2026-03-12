@@ -102,7 +102,7 @@ class LdapService:
             if config['gitlab']['add_description'] and 'description' in group_data:
                 ldap_group.update({"description": group_data['description'][0].decode()})
             if 'member' in group_data:
-                logger.info("reading members...")
+                logging.info("reading members...")
                 for member in group_data['member']:
                     member = member.decode()
                     for user_dn, user_data in l.search_s(base=config['ldap']['users_base_dn'],
