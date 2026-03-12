@@ -105,7 +105,7 @@ class LdapService:
                 logging.info("reading members...")
                 for member in group_data['member']:
                     member = member.decode()
-                    for user_dn, user_data in l.search_s(base=config['ldap']['users_base_dn'],
+                    for user_dn, user_data in self.l.search_s(base=config['ldap']['users_base_dn'],
                                                             scope=ldap.SCOPE_SUBTREE,
                                                             filterstr='(&(|(distinguishedName=%s)(dn=%s))(objectClass=user)%s)' % (
                                                                     member, member, config['ldap']['user_filter']),
