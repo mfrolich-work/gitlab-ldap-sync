@@ -7,11 +7,16 @@ import json
 import ldap
 import ldap.asyncsearch
 import logging
+import urllib3
+
 
 if __name__ == "__main__":
 
     print('Initializing gitlab-ldap-sync.')
+    
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     config = None
+    
     with open('config.json') as f:
         config = json.load(f)
     if config is not None:
@@ -172,7 +177,7 @@ if __name__ == "__main__":
                     logging.info('|- Group already exist in GitLab, skiping creation.')
 
                 continue
-                
+
                 logging.info('|- Working on group\'s members.')
                 for l_member in l_group['members']:
                     if l_member not in gitlab_groups[gitlab_groups_names.index(l_group['name'])]['members']:
