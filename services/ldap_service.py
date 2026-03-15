@@ -7,10 +7,19 @@ from dataclasses import dataclass
 
 
 @dataclass
+class LdapUser:
+    username: str
+    name: str
+    identities: str
+    email: str
+
+
+@dataclass
 class LdapGroup:
     name: str
     description: str
-    members: list[str]
+    members: list[LdapUser]
+
 
 
 class LdapService:
@@ -54,7 +63,6 @@ class LdapService:
     def list_groups(self):
         logging.info('Getting all groups from LDAP.')
         ldap_groups = []
-        ldap_groups_names = []
         
         attrlist=['name', 'member']        
         if self.add_description:
@@ -66,11 +74,10 @@ class LdapService:
                                                 attrlist=attrlist):
             logging.info(f"{group_data}")
 
-            ldap_groups_names.append(group_data['name'][0].decode())
-            ldap_group = {"name": group_data['name'][0].decode(), "members": []}
+            ldap_group = LdapGroup(group_data['name'][0].decode(), None, [])
             
             if self.add_description and 'description' in group_data:
-                ldap_group.update({"description": group_data['description'][0].decode()})
+                ldap_group.description = group_data['description'][0].decode()
             
             if 'member' in group_data:
                 logging.info("reading members...")
@@ -85,13 +92,11 @@ class LdapService:
                             username = user_data['sAMAccountName'][0].decode()
                         else:
                             username = user_data['uid'][0].decode()
-                        ldap_group['members'].append({
-                            'username': username,
-                            'name': user_data['displayName'][0].decode(),
-                            'identities': str(member).lower(),
-                            'email': user_data['mail'][0].decode()
-                        })
+                        
+                        ldap_group.members.append(LdapUser(username, user_data['displayName'][0].decode(), str(member).lower(), user_data['mail'][0].decode()))
+
             ldap_groups.append(ldap_group)
+
         logging.info('Done.')
         
-        return ldap_groups_names
+        return ldap_groups

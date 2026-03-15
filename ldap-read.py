@@ -59,4 +59,11 @@ if __name__ == "__main__":
     init()
 
     ldap_service = LdapService(config)
-    logging.info('Groups currently in LDAP : %s' % str.join(', ', ldap_service.list_groups()))
+    groups = ldap_service.list_groups()
+
+    logging.info('Groups currently in LDAP : %s' % str.join(', ', [g.name for g in groups]))
+
+    for group in groups:
+        logging.info(f"group: {group.name}")
+        for member in group.members:
+            logging(f"member: {member.name}")
