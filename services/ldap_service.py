@@ -44,8 +44,6 @@ class LdapService:
         self.users_base_dn = config['ldap']['users_base_dn']
         self.user_filter = config['ldap']['user_filter']
 
-        logging.info('Connecting to LDAP')
-
         if not config['ldap']['url']:
             logging.error('You should configure LDAP in config.json')
             sys.exit(1)
@@ -57,11 +55,7 @@ class LdapService:
             logging.error("Error while connecting: %s", e)
             sys.exit(1)
 
-        logging.info('Done.')
-
-
     def list_groups(self):
-        logging.info('Getting all groups from LDAP.')
         ldap_groups = []
         
         attrlist=['name', 'member']        
@@ -72,7 +66,7 @@ class LdapService:
                                                 scope=ldap.SCOPE_SUBTREE,
                                                 filterstr=self.filterstr,
                                                 attrlist=attrlist):
-            logging.info(f"{group_data}")
+            logging.debug(f"{group_data}")
 
             ldap_group = LdapGroup(group_data['name'][0].decode(), None, [])
             
@@ -97,6 +91,4 @@ class LdapService:
 
             ldap_groups.append(ldap_group)
 
-        logging.info('Done.')
-        
         return ldap_groups

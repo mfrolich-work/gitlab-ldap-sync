@@ -8,6 +8,8 @@ import ldap
 import ldap.asyncsearch
 import logging
 from services.ldap_service import LdapService
+from services.ldap_service import LdapGroup
+from services.ldap_service import LdapUser
 
 config = None
 
@@ -66,4 +68,4 @@ if __name__ == "__main__":
     for group in groups:
         logging.info(f"group: {group.name}")
         for member in group.members:
-            logging(f"member: {member.name}")
+            logging.info(f"member: {member.name}")
