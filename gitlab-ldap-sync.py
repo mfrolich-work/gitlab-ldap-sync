@@ -104,7 +104,7 @@ if __name__ == "__main__":
             logging.info('|- Project or role couldn\'t be extracted from LDAP group')
             continue
 
-        if not GitlabService.role_exists(gitlab_role):
+        if not gitlab_service.role_exists(gitlab_role):
             logging.info('|- Unrecognized role: %s, skipping', gitlab_role)
             continue
 
