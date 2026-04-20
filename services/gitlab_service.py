@@ -165,6 +165,10 @@ class GitlabService:
             logging.info('|  |- User %s does not exist in gitlab, skipping.', email)
 
 
+    def role_exists(self, role_name):
+        return role_name in self.ROLE_MAP_STR
+                
+
     def compare_roles(self, role1, role2):
         num1 = self.ROLE_MAP_STR.get(role1)
         num2 = self.ROLE_MAP_STR.get(role2)
